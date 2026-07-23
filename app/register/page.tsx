@@ -1,11 +1,19 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 
 export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const searchParams = useSearchParams();
   const defaultRole = searchParams.get('role') === 'barber' ? 'barber' : 'customer';
   const [role, setRole] = useState<'customer' | 'barber'>(defaultRole as 'customer' | 'barber');

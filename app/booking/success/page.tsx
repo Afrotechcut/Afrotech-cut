@@ -1,11 +1,22 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import { formatDate, formatTime } from '@/lib/slots';
 
 export default function BookingSuccessPage() {
+  return (
+    <>
+      <Navbar />
+      <Suspense>
+        <BookingSuccessContent />
+      </Suspense>
+    </>
+  );
+}
+
+function BookingSuccessContent() {
   const searchParams = useSearchParams();
   const bookingId = searchParams.get('bookingId');
   const [booking, setBooking] = useState<any>(null);
@@ -18,10 +29,8 @@ export default function BookingSuccessPage() {
   }, [bookingId]);
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-20">
-        <div className="max-w-md w-full text-center">
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-20">
+      <div className="max-w-md w-full text-center">
           {/* Checkmark */}
           <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,6 +96,5 @@ export default function BookingSuccessPage() {
           </p>
         </div>
       </main>
-    </>
   );
 }
