@@ -12,7 +12,7 @@ const inter = Inter({
 const siteUrl =
   process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes('localhost')
     ? process.env.NEXT_PUBLIC_APP_URL
-    : 'https://afrotech-cut.vercel.app';
+    : 'https://www.afrotechcuts.co.uk';
 
 const title = 'AFROTECHCUTS — Find Your Barber';
 const description = 'Discover top barbers near you, see their work, and book in seconds. AI-powered style matching for the perfect cut.';
