@@ -19,24 +19,12 @@ export default function LandingPage() {
       <main>
         {/* HERO */}
         <section className="relative min-h-[88vh] flex items-center overflow-hidden bg-gray-950">
-          {/* blurred, scaled-up copy fills every edge so a portrait clip still reads as a full-bleed background */}
           <video
             autoPlay
             loop
             muted
             playsInline
-            aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-50"
-          >
-            <source src="/videos/hero-barber-cutting.mp4" type="video/mp4" />
-          </video>
-          {/* sharp copy, cropped to fill — the one actually being watched */}
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1920&q=80&fit=crop"
+            preload="auto"
             className="absolute inset-0 w-full h-full object-cover opacity-70"
             style={{ objectPosition: '50% 35%' }}
           >
