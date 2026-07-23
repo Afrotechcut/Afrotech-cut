@@ -5,13 +5,35 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import StarRating from '@/components/ui/StarRating';
 import Badge from '@/components/ui/Badge';
+import { getServiceClient } from '@/lib/supabase';
 import { buildStorageUrl, DAY_NAMES, formatPrice } from '@/lib/utils';
 import type { Service, BarberAvailability, Review, PortfolioImage, Hairstyle } from '@/types';
 
 async function getBarber(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/barbers/${id}`, { cache: 'no-store' });
-  if (!res.ok) return null;
-  return res.json();
+  const db = getServiceClient();
+
+  const [{ data: barber }, { data: services }, { data: availability }, { data: portfolio }, { data: reviews }, { data: hairstyles }] =
+    await Promise.all([
+      db.from('barbers').select('*').eq('id', id).single(),
+      db.from('services').select('*').eq('barber_id', id).eq('is_active', true).order('price'),
+      db.from('barber_availability').select('*').eq('barber_id', id).order('day_of_week'),
+      db.from('barber_portfolio').select('*').eq('barber_id', id).order('sort_order'),
+      db.from('reviews').select('*').eq('barber_id', id).order('created_at', { ascending: false }).limit(20),
+      db.from('barber_hairstyles')
+        .select('hairstyle_id, hairstyles(id, name, slug, description, image_url, face_shapes, tags)')
+        .eq('barber_id', id),
+    ]);
+
+  if (!barber) return null;
+
+  return {
+    barber,
+    services: services || [],
+    availability: availability || [],
+    portfolio: portfolio || [],
+    reviews: reviews || [],
+    hairstyles: (hairstyles || []).map((h: any) => h.hairstyles).filter(Boolean),
+  };
 }
 
 export default async function BarberProfilePage({ params }: { params: { id: string } }) {
