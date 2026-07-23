@@ -1,0 +1,82 @@
+Build AFROTECHCUTS — a premium SaaS platform for barber discovery and booking. Think "Uber for barbers" combined with AI-powered style matching and a business suite for barbers.
+
+This is an MVP for a pitch, so it must feel like a real, production-grade product — not a prototype. Every feature works end-to-end. No dummy buttons, no "coming soon", no stale placeholder data. When someone demos this, it should feel premium and complete.
+
+---
+
+THE PRODUCT
+
+Afrotechcuts brings barbers and customers together in one place. It solves three problems at once:
+
+For customers — finding a good barber nearby is hard. They rely on word of mouth or walk-ins, can't see a barber's work beforehand, don't know prices, and can't book online. Afrotechcuts lets them discover barbers on a live map, see their work and prices, get AI-suggested haircuts that suit their face, and book in seconds.
+
+For barbers — they have no central tool to get discovered or run their business. Afrotechcuts gives them a profile to showcase their work, plus a dashboard to manage bookings, track repeat customers, and understand how their shop is performing.
+
+For the platform owner (admin) — a control room to monitor the whole ecosystem.
+
+The whole experience should immediately feel like it belongs to the world of barbing — the moment someone lands on the site, they should know this is about haircuts and grooming.
+
+---
+
+WHAT CUSTOMERS EXPERIENCE
+
+They arrive on a premium landing page. The hero should feel unmistakably like barbing — imagery of a barber at work, a shop scene, something that sets the tone. Clean, professional, no clutter.
+
+From there they search for barbers. This is the heart of the product — a live, dynamic, interactive map (like Google Maps) showing real barbers at their real locations. Multiple barbers in the same area cluster together with icons, just like Google Maps does. There's a radius slider — 1km, 2km, 5km — and as they drag it, the map zooms to match, barber pins update, and the results list refreshes in real time. They can filter by price, rating, hairstyle, and availability. The map must be genuinely functional, not a static image.
+
+The signature feature is AI style matching. A customer can either take a live photo with their camera or upload one. The AI analyzes their face shape and suggests 3-5 hairstyles that would suit them — and crucially, each suggestion shows an actual image of that style (pulled from stored images). Then it shows nearby barbers who can do those styles, so the customer goes from "what should I get" to "who can do it" to "booked" in one flow.
+
+When they book, they pick a service and a time slot. Time slots follow the barber's actual opening hours in clean 30-minute intervals, the way Calendly presents availability. They enter their contact details, review, and check out. Payment is demo-only for now — they click to pay and immediately land on a success page — but the whole flow should feel real. A confirmation email goes out. Customers can book as guests without an account, though registering should feel worthwhile (better experience, future perks).
+
+---
+
+WHAT BARBERS EXPERIENCE
+
+Barbers sign up and set up their shop — name, location (dropped on a map), bio, and their weekly hours in a Calendly-style per-day schedule (different hours each day, days they're closed, etc.). They add the services they offer with prices and images of their work, tagged by style so they show up in the right searches.
+
+Their dashboard is their command center: incoming bookings with customer contact details, a calendar of appointments, customer history showing who's a repeat client, their reviews and ratings, a simple inventory list, and analytics that tell them how the shop is doing — profile visitors, bookings, repeat customer rate. When a new booking comes in, they should see it live.
+
+---
+
+WHAT THE ADMIN EXPERIENCES
+
+A dashboard over the whole platform — every booking, each barber's performance, user growth, the health of the marketplace — with the ability to act on what they see. The admin is a single hardcoded account (kept in environment config, not public signup).
+
+---
+
+DESIGN DIRECTION
+
+Premium, professional, light theme throughout. Think clean SaaS — the kind of product a barber would be proud to use and an investor would take seriously. Professional typography, generous spacing, clear hierarchy. No emojis anywhere. The barbing identity should come through in imagery and tone, not gimmicks. It should look designed, not templated.
+
+Fully responsive — web-first but works cleanly on mobile, since barbers will manage bookings from their phones.
+
+---
+
+TECH CONTEXT
+
+- Next.js for the app
+- Supabase (Postgres) purely as the data store — I have my project URL and anon key. Do NOT use Supabase Auth.
+- Authentication is our own, custom email/password.
+- Supabase Storage buckets hold barber images, style images, and face captures.
+- Real-time updates where they matter (new bookings landing in the barber dashboard, map/results reacting to filters).
+- OpenAI Vision for the face analysis.
+- Resend for all transactional email (booking confirmations, notifications) — even in the demo, email should actually send.
+- Geo-radius search needs to be fast and correct — barbers are found by proximity.
+- UK market.
+- Payments are demo-only — realistic flow, no real processing, no payment SDK.
+
+For anything not specified — the map library, how you structure auth, how you model time slots, how real-time is wired, how face analysis maps to stored styles — use your judgment and pick what's best for a product like this. Reason through the important trade-offs and choose deliberately.
+
+---
+
+HOW TO APPROACH THIS
+
+Before writing code, think through the whole system and design it: the data model, how the pieces connect, the key flows end to end. I want to review the foundation before we build on it.
+
+Start by producing:
+
+- The complete database schema as a single SQL file I can paste straight into Supabase — you decide the tables, relationships, indexes (including whatever's needed for fast geo search), and constraints, and pre-seed the standard hairstyle set so the AI feature has images to show. Name everything sensibly and consistently.
+- A clear picture of the system: the main flows, how auth works, how real-time works, how the map and face AI fit in, and the environment variables I'll need to provide.
+- The reasoning behind your key decisions — why this map library, why this auth model, why this approach to time slots and availability — including trade-offs.
+
+Lay out the foundation first. Once I've reviewed it, we build the full thing end to end.
