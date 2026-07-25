@@ -1,14 +1,18 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import StatCard from '@/components/dashboard/StatCard';
 import Badge from '@/components/ui/Badge';
 import { formatDate, formatTime } from '@/lib/slots';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+// Created lazily (not at module scope) so a missing/misconfigured env var
+// only disables realtime updates instead of crashing the whole page.
+function getRealtimeClient(): SupabaseClient | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 interface Analytics {
   totalBookings: number;
@@ -58,6 +62,8 @@ export default function DashboardOverviewPage() {
   // Real-time: subscribe to new bookings for this barber
   useEffect(() => {
     if (!barberId) return;
+    const supabase = getRealtimeClient();
+    if (!supabase) return;
     const channel = supabase
       .channel(`barber-${barberId}-bookings`)
       .on('postgres_changes', {

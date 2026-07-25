@@ -18,6 +18,9 @@ export async function POST(req: NextRequest) {
 
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
   if (booking.status !== 'completed') return NextResponse.json({ error: 'Can only review completed bookings' }, { status: 400 });
+  if (session && session.role === 'customer' && booking.user_id !== session.sub) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
   const reviewer_name = session
     ? (await db.from('users').select('full_name').eq('id', session.sub).single()).data?.full_name || 'Anonymous'

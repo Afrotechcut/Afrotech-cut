@@ -24,7 +24,15 @@ export async function PATCH(req: NextRequest) {
 
   const db = getServiceClient();
   const body = await req.json();
-  const { availability, services, hairstyleIds, ...barberFields } = body;
+  const { availability, services, hairstyleIds, ...rawBarberFields } = body;
+
+  // Only these columns may be self-edited by a barber — never is_approved,
+  // is_active, rating, review_count, user_id, etc.
+  const EDITABLE_BARBER_FIELDS = ['shop_name', 'bio', 'address', 'city', 'postcode', 'phone', 'website', 'avatar_url', 'cover_image_url', 'lat', 'lng'] as const;
+  const barberFields: Record<string, unknown> = {};
+  for (const field of EDITABLE_BARBER_FIELDS) {
+    if (rawBarberFields[field] !== undefined) barberFields[field] = rawBarberFields[field];
+  }
 
   // Update barber profile
   if (Object.keys(barberFields).length > 0) {

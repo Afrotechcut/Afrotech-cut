@@ -4,6 +4,15 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.RESEND_FROM_EMAIL || 'noreply@afrotechcuts.co.uk';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 interface BookingEmailData {
   customerName: string;
   customerEmail: string;
@@ -47,14 +56,14 @@ function bookingConfirmationHtml(d: BookingEmailData): string {
       <h1 style="color:#fff;font-size:24px;font-weight:700;margin:0;">Booking Confirmed</h1>
     </div>
     <div style="padding:32px 40px;">
-      <p style="color:#374151;font-size:16px;margin:0 0 24px;">Hi ${d.customerName}, your appointment is locked in.</p>
+      <p style="color:#374151;font-size:16px;margin:0 0 24px;">Hi ${escapeHtml(d.customerName)}, your appointment is locked in.</p>
       <div style="background:#f9fafb;border-radius:8px;padding:20px;margin-bottom:24px;">
         <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Barber</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.shopName}</td></tr>
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Service</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.serviceName}</td></tr>
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Date</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.appointmentDate}</td></tr>
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Time</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.appointmentTime}</td></tr>
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Address</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.shopAddress}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Barber</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.shopName)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Service</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.serviceName)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Date</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.appointmentDate)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Time</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.appointmentTime)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Address</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.shopAddress)}</td></tr>
           <tr style="border-top:1px solid #e5e7eb;"><td style="padding:12px 0 6px;color:#111827;font-size:15px;font-weight:600;">Total</td><td style="padding:12px 0 6px;color:#c98518;font-size:15px;font-weight:700;text-align:right;">£${d.totalPrice.toFixed(2)}</td></tr>
         </table>
       </div>
@@ -83,11 +92,11 @@ function barberNotificationHtml(d: BookingEmailData & { barberEmail: string }): 
       <p style="color:#374151;font-size:16px;margin:0 0 24px;">You have a new appointment.</p>
       <div style="background:#f9fafb;border-radius:8px;padding:20px;margin-bottom:24px;">
         <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Customer</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.customerName}</td></tr>
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Email</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.customerEmail}</td></tr>
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Service</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.serviceName}</td></tr>
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Date</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.appointmentDate}</td></tr>
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Time</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${d.appointmentTime}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Customer</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.customerName)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Email</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.customerEmail)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Service</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.serviceName)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Date</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.appointmentDate)}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px;">Time</td><td style="padding:6px 0;color:#111827;font-size:14px;font-weight:500;text-align:right;">${escapeHtml(d.appointmentTime)}</td></tr>
           <tr style="border-top:1px solid #e5e7eb;"><td style="padding:12px 0 6px;color:#111827;font-size:15px;font-weight:600;">Revenue</td><td style="padding:12px 0 6px;color:#c98518;font-size:15px;font-weight:700;text-align:right;">£${d.totalPrice.toFixed(2)}</td></tr>
         </table>
       </div>

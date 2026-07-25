@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Badge from '@/components/ui/Badge';
 import { formatDate, formatTime } from '@/lib/slots';
 
@@ -16,14 +17,18 @@ interface AdminBooking {
 }
 
 export default function AdminBookingsPage() {
+  const router = useRouter();
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/admin/bookings')
-      .then((r) => r.json())
-      .then((d) => { setBookings(d.bookings || []); setLoading(false); });
-  }, []);
+      .then((r) => {
+        if (r.status === 401) { router.replace('/login'); return null; }
+        return r.json();
+      })
+      .then((d) => { if (d) { setBookings(d.bookings || []); setLoading(false); } });
+  }, [router]);
 
   const statusBadge = (s: string) => {
     const map: Record<string, any> = { confirmed: 'info', completed: 'success', cancelled: 'danger', no_show: 'warning' };

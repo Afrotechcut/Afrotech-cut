@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getSessionFromRequest } from '@/lib/auth';
 
-const PUBLIC_PATHS = ['/', '/search', '/barbers', '/style-match', '/login', '/register', '/api/auth', '/api/barbers', '/api/bookings', '/api/ai', '/booking/success', '/_next', '/favicon', '/fonts'];
+// Note: '/book/' has a trailing slash so it matches only /book/<barberId>,
+// never '/bookings' (which is a separate, customer-only route below).
+const PUBLIC_PATHS = ['/', '/search', '/barbers', '/style-match', '/login', '/register', '/api/auth', '/api/barbers', '/api/bookings', '/api/ai', '/book/', '/booking/success', '/_next', '/favicon', '/fonts'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

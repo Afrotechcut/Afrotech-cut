@@ -13,11 +13,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const db = getServiceClient();
 
-  // Verify ownership — barber can only update their own bookings
-  const { data: booking } = await db.from('bookings').select('barber_id').eq('id', params.id).single();
+  // Verify ownership — barbers/customers can only update their own bookings
+  const { data: booking } = await db.from('bookings').select('barber_id, user_id').eq('id', params.id).single();
   if (!booking) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   if (session.role === 'barber' && booking.barber_id !== session.barberId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  if (session.role === 'customer' && booking.user_id !== session.sub) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

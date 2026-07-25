@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import StarRating from '@/components/ui/StarRating';
@@ -18,6 +19,7 @@ interface AdminBarber {
 }
 
 export default function AdminBarbersPage() {
+  const router = useRouter();
   const [barbers, setBarbers] = useState<AdminBarber[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('all');
@@ -25,12 +27,14 @@ export default function AdminBarbersPage() {
 
   const load = async () => {
     setLoading(true);
-    const data = await fetch('/api/admin/barbers').then((r) => r.json());
+    const res = await fetch('/api/admin/barbers');
+    if (res.status === 401) { router.replace('/login'); return; }
+    const data = await res.json();
     setBarbers(data.barbers || []);
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [router]);
 
   const update = async (id: string, patch: Record<string, boolean>) => {
     setUpdating(id);

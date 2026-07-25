@@ -56,7 +56,7 @@ export default function BarberCard({ barber, highlight }: BarberCardProps) {
             <div className="flex items-center gap-1.5">
               <StarRating rating={barber.rating} />
               <span className="text-xs text-gray-500">
-                {barber.rating > 0 ? `${barber.rating.toFixed(1)} (${barber.review_count})` : 'No reviews yet'}
+                {barber.rating > 0 ? `${Number(barber.rating).toFixed(1)} (${barber.review_count})` : 'No reviews yet'}
               </span>
             </div>
             {!barber.is_approved && <Badge variant="warning">Pending</Badge>}
