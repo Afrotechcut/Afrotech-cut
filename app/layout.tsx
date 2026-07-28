@@ -15,13 +15,13 @@ const siteUrl =
     : 'https://www.afrotechcuts.co.uk';
 
 const title = 'AFROTECHCUTS — Barbers Who Know Afro Hair';
-const description = 'Discover Black barbers near you who specialise in Afro hair — fades, locs, twists, and cornrows. Browse their work, get AI-powered style matches, and book in seconds.';
+const description = 'Discover barbers near you who specialise in Afro hair — fades, locs, twists, and cornrows. Browse their work, get AI-powered style matches, and book in seconds.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
-  keywords: 'black barber, afro hair, natural hair, locs, twists, cornrows, fade, braids, booking, London, UK',
+  keywords: 'afro hair barber, natural hair, locs, twists, cornrows, fade, braids, booking, London, UK',
   openGraph: {
     title,
     description,

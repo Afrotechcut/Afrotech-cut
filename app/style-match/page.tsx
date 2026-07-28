@@ -93,7 +93,7 @@ export default function StyleMatchPage() {
             <p className="text-brand-500 text-sm font-semibold uppercase tracking-widest mb-3">AI Style Matching</p>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Find your perfect Afro cut</h1>
             <p className="text-gray-500 text-base leading-relaxed">
-              Take a photo or upload one. Our AI analyses your face shape and suggests 3–5 Afro-hair styles — from fades to locs, twists to cornrows — that complement your features, with Black barbers nearby who can deliver each look.
+              Take a photo or upload one. Our AI analyses your face shape and suggests 3–5 Afro-hair styles — from fades to locs, twists to cornrows — that complement your features, with barbers nearby who specialise in Afro hair and can deliver each look.
             </p>
           </div>
         </section>

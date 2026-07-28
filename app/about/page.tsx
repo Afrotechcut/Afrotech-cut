@@ -12,14 +12,14 @@ export default function AboutPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-6">About AFROTECHCUTS</h1>
           <div className="space-y-5 text-gray-600 leading-relaxed">
             <p>
-              AFROTECHCUTS is a booking platform built specifically for Black barbers and the Afro
-              hair community they serve. We started with a simple observation: finding a barber who
-              actually understands your hair — whether that's a sharp fade, freeform locs, a
-              twist-out, or cornrows — shouldn't mean relying on word of mouth, phone calls, or
-              walking in and hoping for the best.
+              AFROTECHCUTS is a booking platform built specifically for barbers who specialise in
+              Afro hair and the community they serve. We started with a simple observation: finding
+              a barber who actually understands your hair — whether that's a sharp fade, freeform
+              locs, a twist-out, or cornrows — shouldn't mean relying on word of mouth, phone calls,
+              or walking in and hoping for the best.
             </p>
             <p>
-              Our platform lets customers discover Black barbers nearby who specialise in Afro hair,
+              Our platform lets customers discover barbers nearby who specialise in Afro hair,
               browse real photos of their work, get AI-powered suggestions for cuts and styles that
               suit their face shape, and book a slot in seconds — no calls, no waiting.
             </p>
@@ -29,8 +29,8 @@ export default function AboutPage() {
               manage bookings, schedules and customer relationships from one dashboard.
             </p>
             <p>
-              We're a small team building for Black barbers and the Afro hair community, and we're
-              just getting started.
+              We're a small team building for barbers who specialise in Afro hair and the community
+              they serve, and we're just getting started.
             </p>
           </div>
         </div>

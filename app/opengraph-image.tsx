@@ -47,7 +47,7 @@ export default function OGImage() {
           Barbers Who Know Afro Hair
         </div>
         <div style={{ display: 'flex', fontSize: 23, color: '#9ca3af', marginTop: 18, maxWidth: 800, textAlign: 'center' }}>
-          Discover Black barbers near you who specialise in Afro hair, and book in seconds.
+          Discover barbers near you who specialise in Afro hair, and book in seconds.
         </div>
       </div>
     ),
