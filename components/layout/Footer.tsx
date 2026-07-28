@@ -14,7 +14,7 @@ export default function Footer() {
               </div>
               <span className="font-bold text-sm text-gray-900">AFROTECHCUTS</span>
             </div>
-            <p className="text-sm text-gray-500 leading-relaxed">The smarter way to find and book your barber in the UK.</p>
+            <p className="text-sm text-gray-500 leading-relaxed">The UK's booking platform for Black barbers and Afro hair.</p>
           </div>
 
           <div>
@@ -47,7 +47,7 @@ export default function Footer() {
 
         <div className="mt-10 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-gray-400">© {new Date().getFullYear()} AFROTECHCUTS. All rights reserved.</p>
-          <p className="text-xs text-gray-400">Built for UK barbers.</p>
+          <p className="text-xs text-gray-400">Built for Black barbers and Afro hair.</p>
         </div>
       </div>
     </footer>

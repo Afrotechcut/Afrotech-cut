@@ -14,14 +14,14 @@ const siteUrl =
     ? process.env.NEXT_PUBLIC_APP_URL
     : 'https://www.afrotechcuts.co.uk';
 
-const title = 'AFROTECHCUTS — Find Your Barber';
-const description = 'Discover top barbers near you, see their work, and book in seconds. AI-powered style matching for the perfect cut.';
+const title = 'AFROTECHCUTS — Barbers Who Know Afro Hair';
+const description = 'Discover Black barbers near you who specialise in Afro hair — fades, locs, twists, and cornrows. Browse their work, get AI-powered style matches, and book in seconds.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
-  keywords: 'barber, haircut, booking, afro, fade, London, UK',
+  keywords: 'black barber, afro hair, natural hair, locs, twists, cornrows, fade, braids, booking, London, UK',
   openGraph: {
     title,
     description,

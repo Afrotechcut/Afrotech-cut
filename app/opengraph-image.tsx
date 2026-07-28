@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'AFROTECHCUTS — Find Your Barber';
+export const alt = 'AFROTECHCUTS — Barbers Who Know Afro Hair';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -44,10 +44,10 @@ export default function OGImage() {
           </div>
         </div>
         <div style={{ display: 'flex', fontSize: 32, color: '#dea030', fontWeight: 600 }}>
-          Find Your Barber
+          Barbers Who Know Afro Hair
         </div>
         <div style={{ display: 'flex', fontSize: 23, color: '#9ca3af', marginTop: 18, maxWidth: 800, textAlign: 'center' }}>
-          Discover top barbers near you, see their work, and book in seconds.
+          Discover Black barbers near you who specialise in Afro hair, and book in seconds.
         </div>
       </div>
     ),

@@ -91,9 +91,9 @@ export default function StyleMatchPage() {
         <section className="bg-white border-b border-gray-200 py-16">
           <div className="max-w-2xl mx-auto px-4 text-center">
             <p className="text-brand-500 text-sm font-semibold uppercase tracking-widest mb-3">AI Style Matching</p>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Find your perfect cut</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Find your perfect Afro cut</h1>
             <p className="text-gray-500 text-base leading-relaxed">
-              Take a photo or upload one. Our AI analyses your face shape and suggests 3–5 hairstyles that complement your features — with barbers nearby who can deliver each look.
+              Take a photo or upload one. Our AI analyses your face shape and suggests 3–5 Afro-hair styles — from fades to locs, twists to cornrows — that complement your features, with Black barbers nearby who can deliver each look.
             </p>
           </div>
         </section>
@@ -185,7 +185,23 @@ export default function StyleMatchPage() {
                     return (
                       <div key={style.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden flex gap-4 p-4">
                         <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                          <Image src={imgSrc} alt={style.name} width={80} height={80} className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200&q=60&fit=crop'; }} />
+                          <Image
+                            src={imgSrc}
+                            alt={style.name}
+                            width={80}
+                            height={80}
+                            className="object-cover w-full h-full"
+                            onError={(e) => {
+                              const img = e.target as HTMLImageElement;
+                              if (img.dataset.fallback !== 'local') {
+                                img.dataset.fallback = 'local';
+                                img.src = `/hairstyles/${style.slug}.jpg`;
+                              } else {
+                                img.onerror = null;
+                                img.style.display = 'none';
+                              }
+                            }}
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-gray-900">{style.name}</p>
