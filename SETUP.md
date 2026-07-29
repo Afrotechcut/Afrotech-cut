@@ -20,6 +20,7 @@ Required:
 - `SUPABASE_SERVICE_ROLE_KEY` — secret service role key (server-only)
 - `NEXT_PUBLIC_MAPTILER_KEY` — free account at maptiler.com (no card required); copy your key from Account > Keys
 - `OPENAI_API_KEY` — from platform.openai.com
+- `OPENAI_IMAGE_MODEL` — optional, defaults to `gpt-image-2`. Set to `gpt-image-1` if your OpenAI account doesn't have `gpt-image-2` access yet
 - `RESEND_API_KEY` — from resend.com
 - `RESEND_FROM_EMAIL` — verified sender email in Resend
 - `JWT_SECRET` — run `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` to generate
@@ -89,6 +90,15 @@ Open http://localhost:3000
 3. Register as a customer (or use guest booking)
 4. Go to `/search`, find the barber, book an appointment
 5. Watch the booking appear live in the barber dashboard `/dashboard`
+
+## AI Style Match
+
+`/style-match` lets a customer upload or capture a photo. It makes two OpenAI calls:
+
+1. `gpt-4o` (vision) picks exactly two hairstyles from the seeded catalogue that suit the photo, each with a one-line reason. It can only pick from the seeded list — never invents a style.
+2. For each pick, `gpt-image-2` (image edit) generates the customer wearing that cut, using their photo as the reference. The prompt is strict about preserving their exact face, skin tone and identity — only the hair changes. If a generation fails, the UI falls back to that style's reference photo instead of showing a broken image.
+
+Each generated image is a separate async call, so the two results load independently with their own spinners — expect a few seconds per image. Nearby barbers who offer each cut are shown underneath (uses the browser's geolocation if granted, otherwise falls back to a wide radius around the app's default city).
 
 ## Admin login
 

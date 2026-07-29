@@ -130,10 +130,11 @@ export default function LandingPage() {
               </div>
               <div className="relative h-96 rounded-2xl overflow-hidden bg-gray-100">
                 <Image
-                  src="https://images.unsplash.com/photo-1653758265969-b048bb0b328a?w=800&q=80&fit=crop"
-                  alt="Barber cutting a client's Afro-textured hair"
+                  src="/images/ai-style-match.jpg"
+                  alt="Barber lining up a client's fade with a straight razor"
                   fill
                   className="object-cover"
+                  style={{ objectPosition: '50% 47%' }}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </div>

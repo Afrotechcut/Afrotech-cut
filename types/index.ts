@@ -118,6 +118,12 @@ export interface AuthPayload {
   exp: number;
 }
 
+export interface StyleRecommendation {
+  hairstyle: Hairstyle;
+  reason: string;
+  barbers: Barber[];
+}
+
 export interface SearchFilters {
   lat: number;
   lng: number;
