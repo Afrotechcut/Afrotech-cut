@@ -20,9 +20,9 @@ export default function Footer() {
           <div>
             <h4 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">Platform</h4>
             <ul className="space-y-2">
+              <li><Link href="/register?role=barber" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">List Your Shop</Link></li>
               <li><Link href="/search" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Find a Barber</Link></li>
               <li><Link href="/style-match" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">AI Style Match</Link></li>
-              <li><Link href="/register?role=barber" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">List Your Shop</Link></li>
             </ul>
           </div>
 

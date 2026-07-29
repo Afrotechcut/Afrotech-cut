@@ -4,9 +4,9 @@ import OpenAI from 'openai';
 export const VISION_MODEL = 'gpt-4o';
 
 // The image-editing model used to render the customer wearing each recommended cut.
-// Configurable so the demo can fall back to gpt-image-1 if an account doesn't yet
-// have gpt-image-2 access.
-export const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2';
+// gpt-image-1 is the only OpenAI image-edit model currently available (aside from dall-e-2);
+// configurable via env in case that changes.
+export const IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
 
 let client: OpenAI | null | undefined;
 

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
@@ -10,6 +10,10 @@ import { buildStorageUrl } from '@/lib/utils';
 import type { StyleRecommendation } from '@/types';
 
 type GenerationState = { status: 'loading' | 'done' | 'error'; image?: string };
+
+// Average observed time for a GPT image edit to come back. Not exact — used to drive
+// a countdown that gives users a sense of progress instead of an indefinite spinner.
+const ESTIMATED_GENERATION_SECONDS = 48;
 
 function resolveHairstyleImage(url: string) {
   return url.startsWith('http') ? url : buildStorageUrl('assets', url);
@@ -40,10 +44,30 @@ export default function StyleMatchPage() {
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<StyleRecommendation[] | null>(null);
   const [generations, setGenerations] = useState<GenerationState[]>([]);
+  const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const generationsRef = useRef<GenerationState[]>([]);
   const [cameraMode, setCameraMode] = useState(false);
+
+  useEffect(() => {
+    generationsRef.current = generations;
+  }, [generations]);
+
+  // Drives the countdown shown while images generate. Restarts whenever a new set of
+  // recommendations comes in, and self-stops once nothing is left loading.
+  useEffect(() => {
+    if (!recommendations) return;
+    setElapsed(0);
+    const id = setInterval(() => {
+      setElapsed((s) => s + 1);
+      if (!generationsRef.current.some((g) => g.status === 'loading')) {
+        clearInterval(id);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [recommendations]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -212,14 +236,24 @@ export default function StyleMatchPage() {
                   {recommendations.map((rec, i) => {
                     const gen = generations[i];
                     const referenceImg = resolveHairstyleImage(rec.hairstyle.image_url);
+                    const remaining = Math.max(ESTIMATED_GENERATION_SECONDS - elapsed, 0);
+                    const progressPct = Math.min((elapsed / ESTIMATED_GENERATION_SECONDS) * 100, 100);
 
                     return (
                       <div key={rec.hairstyle.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col">
                         <div className="relative aspect-square bg-gray-100">
                           {gen?.status === 'loading' && (
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gray-50">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-50 px-8">
                               <svg className="w-7 h-7 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
-                              <p className="text-xs text-gray-400">Generating your look…</p>
+                              <p className="text-xs text-gray-400 tabular-nums">
+                                {remaining > 0 ? `Generating your look… ${remaining}s` : 'Almost there…'}
+                              </p>
+                              <div className="w-full max-w-[140px] h-1 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-brand-500 rounded-full transition-[width] duration-1000 ease-linear"
+                                  style={{ width: `${progressPct}%` }}
+                                />
+                              </div>
                             </div>
                           )}
                           {gen?.status === 'done' && gen.image && (

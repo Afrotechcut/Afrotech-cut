@@ -42,7 +42,10 @@ export async function POST(req: NextRequest) {
       prompt: buildPrompt(hairstyle.name, hairstyle.description),
       size: '1024x1024',
       quality: 'high',
-    });
+      // Not in the installed SDK's types yet, but the API supports it — pushes the
+      // model to preserve the input face/identity instead of loosely reinterpreting it.
+      input_fidelity: 'high',
+    } as Parameters<typeof openai.images.edit>[0] & { input_fidelity: 'high' });
 
     const b64 = result.data?.[0]?.b64_json;
     if (!b64) throw new Error('No image returned');
