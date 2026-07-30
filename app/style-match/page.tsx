@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer';
 import Button from '@/components/ui/Button';
 import StarRating from '@/components/ui/StarRating';
 import { buildStorageUrl } from '@/lib/utils';
-import { loadStyleMatchCache, saveStyleMatchCache, clearStyleMatchCache } from '@/lib/styleMatchCache';
+import { loadStyleMatchCache, saveStyleMatchCache, clearStyleMatchCache, blobToDataUrl, dataUrlToFile } from '@/lib/styleMatchCache';
 import type { StyleRecommendation } from '@/types';
 
 type GenerationState = { status: 'loading' | 'done' | 'error'; image?: string };
@@ -57,11 +57,11 @@ export default function StyleMatchPage() {
   // Restore the last result on load — refreshing the page shouldn't force a fresh
   // (expensive) OpenAI run when we already have one sitting in the browser's cache.
   useEffect(() => {
-    loadStyleMatchCache().then((cached) => {
+    loadStyleMatchCache().then(async (cached) => {
       if (!cached) return;
-      const restoredFile = new File([cached.photoBlob], 'your-photo.jpg', { type: cached.photoBlob.type || 'image/jpeg' });
+      const restoredFile = await dataUrlToFile(cached.photoDataUrl, 'your-photo.jpg');
       setFile(restoredFile);
-      setPreview(URL.createObjectURL(cached.photoBlob));
+      setPreview(cached.photoDataUrl);
       setRecommendations(cached.recommendations);
       setGenerations(cached.generations);
       setRestoredFromCache(true);
@@ -90,10 +90,12 @@ export default function StyleMatchPage() {
     if (recommendations && generations.length > 0 && generations.every((g) => g.status !== 'loading')) {
       stopTimer();
       if (file) {
-        saveStyleMatchCache({
-          photoBlob: file,
-          recommendations,
-          generations: generations as { status: 'done' | 'error'; image?: string }[],
+        blobToDataUrl(file).then((photoDataUrl) => {
+          saveStyleMatchCache({
+            photoDataUrl,
+            recommendations,
+            generations: generations as { status: 'done' | 'error'; image?: string }[],
+          });
         });
       }
     }

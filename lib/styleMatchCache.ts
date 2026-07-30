@@ -7,6 +7,11 @@ import type { StyleRecommendation } from '@/types';
 // server storage, just a local cache with a TTL. IndexedDB (not localStorage) because
 // the generated images are multi-megabyte base64 strings that can exceed localStorage's
 // ~5-10MB quota.
+//
+// The photo is stored as a base64 data URL string, not a Blob/File object. Safari has a
+// long history of silently failing (or corrupting) structured-clone of Blobs in
+// IndexedDB — storing plain strings sidesteps that entirely and works identically across
+// all browsers.
 
 const DB_NAME = 'afrotechcuts-style-match';
 const STORE_NAME = 'results';
@@ -24,9 +29,23 @@ export interface CachedGeneration {
 
 export interface CachedStyleMatch {
   savedAt: number;
-  photoBlob: Blob;
+  photoDataUrl: string;
   recommendations: StyleRecommendation[];
   generations: CachedGeneration[];
+}
+
+export function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function dataUrlToFile(dataUrl: string, filename: string): Promise<File> {
+  const blob = await fetch(dataUrl).then((r) => r.blob());
+  return new File([blob], filename, { type: blob.type || 'image/jpeg' });
 }
 
 function openDb(): Promise<IDBDatabase> {
@@ -51,9 +70,12 @@ export async function saveStyleMatchCache(entry: Omit<CachedStyleMatch, 'savedAt
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
-  } catch {
+  } catch (err) {
     // Best-effort — if IndexedDB is unavailable (private browsing, storage full,
-    // unsupported browser), just skip caching rather than breaking the page.
+    // unsupported browser), just skip caching rather than breaking the page. Logged
+    // (not silent) so a real failure is diagnosable instead of looking like "it just
+    // didn't work".
+    console.warn('style-match cache: save failed', err);
   }
 }
 
@@ -72,7 +94,8 @@ export async function loadStyleMatchCache(): Promise<CachedStyleMatch | null> {
       return null;
     }
     return entry;
-  } catch {
+  } catch (err) {
+    console.warn('style-match cache: load failed', err);
     return null;
   }
 }
