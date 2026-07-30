@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer';
 import Button from '@/components/ui/Button';
 import StarRating from '@/components/ui/StarRating';
 import { buildStorageUrl } from '@/lib/utils';
+import { loadStyleMatchCache, saveStyleMatchCache, clearStyleMatchCache } from '@/lib/styleMatchCache';
 import type { StyleRecommendation } from '@/types';
 
 type GenerationState = { status: 'loading' | 'done' | 'error'; image?: string };
@@ -51,6 +52,21 @@ export default function StyleMatchPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerIdRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [cameraMode, setCameraMode] = useState(false);
+  const [restoredFromCache, setRestoredFromCache] = useState(false);
+
+  // Restore the last result on load — refreshing the page shouldn't force a fresh
+  // (expensive) OpenAI run when we already have one sitting in the browser's cache.
+  useEffect(() => {
+    loadStyleMatchCache().then((cached) => {
+      if (!cached) return;
+      const restoredFile = new File([cached.photoBlob], 'your-photo.jpg', { type: cached.photoBlob.type || 'image/jpeg' });
+      setFile(restoredFile);
+      setPreview(URL.createObjectURL(cached.photoBlob));
+      setRecommendations(cached.recommendations);
+      setGenerations(cached.generations);
+      setRestoredFromCache(true);
+    });
+  }, []);
 
   // Starts the countdown the instant the user clicks "Find my styles" — covering both
   // the photo-analysis call and the image generation that follows — so there's no gap
@@ -68,16 +84,26 @@ export default function StyleMatchPage() {
   };
   useEffect(() => stopTimer, []);
 
-  // Once every card has settled (done or error), the countdown has served its purpose.
+  // Once every card has settled (done or error), the countdown has served its purpose —
+  // and this is the point worth caching, so a refresh doesn't throw away paid-for results.
   useEffect(() => {
     if (recommendations && generations.length > 0 && generations.every((g) => g.status !== 'loading')) {
       stopTimer();
+      if (file) {
+        saveStyleMatchCache({
+          photoBlob: file,
+          recommendations,
+          generations: generations as { status: 'done' | 'error'; image?: string }[],
+        });
+      }
     }
-  }, [generations, recommendations]);
+  }, [generations, recommendations, file]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    clearStyleMatchCache();
+    setRestoredFromCache(false);
     setFile(f);
     setPreview(URL.createObjectURL(f));
     setRecommendations(null);
@@ -105,6 +131,8 @@ export default function StyleMatchPage() {
     canvas.getContext('2d')?.drawImage(video, 0, 0);
     canvas.toBlob((blob) => {
       if (!blob) return;
+      clearStyleMatchCache();
+      setRestoredFromCache(false);
       const f = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
       setFile(f);
       setPreview(URL.createObjectURL(f));
@@ -130,12 +158,23 @@ export default function StyleMatchPage() {
     }
   };
 
+  // Explicit, opt-in regeneration of a single card — the cost-conscious alternative to
+  // re-running the whole (more expensive) analysis when someone just wants a fresh take
+  // on one look.
+  const regenerateImage = (index: number) => {
+    if (!file || !recommendations) return;
+    setGenerations((prev) => prev.map((g, i) => (i === index ? { status: 'loading' } : g)));
+    startTimer();
+    generateImage(file, recommendations[index].hairstyle.id, index);
+  };
+
   const handleAnalyse = async () => {
     if (!file) return;
     setLoading(true);
     setError('');
     setRecommendations(null);
     setGenerations([]);
+    setRestoredFromCache(false);
     startTimer();
     try {
       const coords = await getLocationQuick();
@@ -203,7 +242,14 @@ export default function StyleMatchPage() {
                       Find my styles
                     </Button>
                     <button
-                      onClick={() => { setPreview(null); setFile(null); setRecommendations(null); setGenerations([]); }}
+                      onClick={() => {
+                        clearStyleMatchCache();
+                        setRestoredFromCache(false);
+                        setPreview(null);
+                        setFile(null);
+                        setRecommendations(null);
+                        setGenerations([]);
+                      }}
                       className="w-full text-sm text-gray-400 hover:text-gray-600"
                     >
                       Use a different photo
@@ -235,7 +281,7 @@ export default function StyleMatchPage() {
                 {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
                 <p className="mt-4 text-xs text-gray-400 leading-relaxed">
-                  For best results, use a clear front-facing photo in good lighting. Your photo is processed by AI and not stored.
+                  For best results, use a clear front-facing photo in good lighting. Your photo is processed by AI and never stored on our servers — your results are kept only in this browser for a day, so a refresh won't make you wait again.
                 </p>
               </div>
             </div>
@@ -244,6 +290,11 @@ export default function StyleMatchPage() {
             <div>
               {recommendations ? (
                 <div className="grid sm:grid-cols-2 gap-5">
+                  {restoredFromCache && (
+                    <div className="sm:col-span-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                      <span className="text-xs font-medium text-gray-600">Showing your results from earlier. Use the refresh icon on a photo to regenerate just that one.</span>
+                    </div>
+                  )}
                   {recommendations.map((rec, i) => {
                     const gen = generations[i];
                     const referenceImg = resolveHairstyleImage(rec.hairstyle.image_url);
@@ -268,7 +319,17 @@ export default function StyleMatchPage() {
                             </div>
                           )}
                           {gen?.status === 'done' && gen.image && (
-                            <Image src={gen.image} alt={`You with ${rec.hairstyle.name}`} fill className="object-cover" sizes="400px" unoptimized />
+                            <>
+                              <Image src={gen.image} alt={`You with ${rec.hairstyle.name}`} fill className="object-cover" sizes="400px" unoptimized />
+                              <button
+                                onClick={() => regenerateImage(i)}
+                                title="Regenerate this image"
+                                aria-label="Regenerate this image"
+                                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-colors"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                              </button>
+                            </>
                           )}
                           {gen?.status === 'error' && (
                             <>
@@ -289,8 +350,11 @@ export default function StyleMatchPage() {
                                   }
                                 }}
                               />
-                              <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[11px] text-center py-1">
-                                Showing reference photo
+                              <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[11px] py-1 flex items-center justify-between px-2">
+                                <span>Showing reference photo</span>
+                                <button onClick={() => regenerateImage(i)} className="font-semibold underline underline-offset-2">
+                                  Try again
+                                </button>
                               </div>
                             </>
                           )}
