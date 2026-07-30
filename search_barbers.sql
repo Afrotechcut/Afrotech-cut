@@ -8,7 +8,8 @@ CREATE OR REPLACE FUNCTION search_barbers(
   p_min_price   FLOAT DEFAULT NULL,
   p_max_price   FLOAT DEFAULT NULL,
   p_min_rating  FLOAT DEFAULT NULL,
-  p_hairstyle_id UUID  DEFAULT NULL
+  p_hairstyle_id UUID  DEFAULT NULL,
+  p_hair_type_id UUID  DEFAULT NULL
 )
 RETURNS TABLE (
   id              UUID,
@@ -52,6 +53,7 @@ AS $$
   FROM barbers b
   LEFT JOIN services s ON s.barber_id = b.id AND s.is_active = TRUE
   LEFT JOIN barber_hairstyles bh ON bh.barber_id = b.id
+  LEFT JOIN barber_hair_types bht ON bht.barber_id = b.id
   WHERE
     b.is_active   = TRUE
     AND b.is_approved = TRUE
@@ -60,5 +62,6 @@ AS $$
     AND (p_max_price   IS NULL OR s.price <= p_max_price)
     AND (p_min_rating  IS NULL OR b.rating >= p_min_rating)
     AND (p_hairstyle_id IS NULL OR bh.hairstyle_id = p_hairstyle_id)
+    AND (p_hair_type_id IS NULL OR bht.hair_type_id = p_hair_type_id)
   ORDER BY b.id, distance_metres
 $$;

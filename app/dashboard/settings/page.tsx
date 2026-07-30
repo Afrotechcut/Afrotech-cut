@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { DAY_NAMES, buildStorageUrl } from '@/lib/utils';
-import type { Service, Hairstyle } from '@/types';
+import type { Service, Hairstyle, HairType } from '@/types';
 
 function serviceImageSrc(image_url?: string) {
   if (!image_url) return null;
@@ -22,6 +22,8 @@ export default function SettingsPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [allHairstyles, setAllHairstyles] = useState<Hairstyle[]>([]);
   const [selectedHairstyleIds, setSelectedHairstyleIds] = useState<string[]>([]);
+  const [allHairTypes, setAllHairTypes] = useState<HairType[]>([]);
+  const [selectedHairTypeIds, setSelectedHairTypeIds] = useState<string[]>([]);
   const [newService, setNewService] = useState({ name: '', price: '', duration_minutes: 30, description: '' });
   const [addingService, setAddingService] = useState(false);
   const [newServiceImageFile, setNewServiceImageFile] = useState<File | null>(null);
@@ -32,12 +34,15 @@ export default function SettingsPage() {
     Promise.all([
       fetch('/api/dashboard/settings').then((r) => r.json()),
       fetch('/api/hairstyles').then((r) => r.json()),
-    ]).then(([settings, styles]) => {
+      fetch('/api/hair-types').then((r) => r.json()),
+    ]).then(([settings, styles, hairTypes]) => {
       setBarber(settings.barber || {});
       setAvailability(settings.availability || []);
       setServices(settings.services || []);
       setSelectedHairstyleIds(settings.hairstyleIds || []);
       setAllHairstyles(styles.hairstyles || []);
+      setSelectedHairTypeIds(settings.hairTypeIds || []);
+      setAllHairTypes(hairTypes.hairTypes || []);
       setLoading(false);
     });
   }, []);
@@ -57,6 +62,7 @@ export default function SettingsPage() {
         website: barber.website,
         availability,
         hairstyleIds: selectedHairstyleIds,
+        hairTypeIds: selectedHairTypeIds,
       }),
     });
     setSaving(false);
@@ -107,6 +113,12 @@ export default function SettingsPage() {
 
   const toggleHairstyle = (id: string) => {
     setSelectedHairstyleIds((prev) =>
+      prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id],
+    );
+  };
+
+  const toggleHairType = (id: string) => {
+    setSelectedHairTypeIds((prev) =>
       prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id],
     );
   };
@@ -279,6 +291,29 @@ export default function SettingsPage() {
                 }`}
               >
                 {h.name}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Hair type specialisms */}
+      <section className="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+        <h2 className="font-semibold text-gray-900 mb-1">Hair types you work with</h2>
+        <p className="text-xs text-gray-500 mb-4">Select every hair type you're skilled with. Customers filter search by hair type, so this determines whether you show up for them.</p>
+        <div className="flex flex-wrap gap-2">
+          {allHairTypes.map((t) => {
+            const selected = selectedHairTypeIds.includes(t.id);
+            return (
+              <button
+                key={t.id}
+                onClick={() => toggleHairType(t.id)}
+                title={t.description}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                  selected ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                {t.code.toUpperCase()} — {t.name}
               </button>
             );
           })}

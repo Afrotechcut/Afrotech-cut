@@ -66,24 +66,17 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
+        {/* FOR BARBERS — leads */}
         <section className="py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-8">From sign-up to fully booked</h2>
-              <div className="flex flex-col sm:flex-row items-stretch justify-center gap-6 sm:gap-8 max-w-3xl mx-auto">
-                <div className="flex-1 text-left sm:text-center">
-                  <p className="text-brand-500 text-xs font-semibold uppercase tracking-widest mb-2">For barbers</p>
-                  <p className="text-gray-600 text-lg leading-snug">No more sitting in an empty shop while clients who want exactly what you offer can't find you.</p>
-                </div>
-                <div className="hidden sm:block w-px bg-gray-200" />
-                <div className="flex-1 text-left sm:text-center">
-                  <p className="text-terracotta-500 text-xs font-semibold uppercase tracking-widest mb-2">For clients</p>
-                  <p className="text-gray-600 text-lg leading-snug">No more guessing which barber actually knows how to work with your hair type.</p>
-                </div>
-              </div>
+              <p className="text-brand-500 text-xs font-semibold uppercase tracking-widest mb-3">For barbers</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">List your shop, fill your chair</h2>
+              <p className="text-gray-600 text-lg leading-relaxed max-w-2xl mx-auto">
+                No more sitting in an empty shop while clients who want exactly what you offer can't find you.
+              </p>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto mb-12">
               {[
                 {
                   step: '01',
@@ -93,18 +86,6 @@ export default function LandingPage() {
                 },
                 {
                   step: '02',
-                  title: 'Get discovered',
-                  desc: 'Clients searching for barbers who specialise in Afro hair find you by location, style, and rating.',
-                  accent: 'bg-brand-500',
-                },
-                {
-                  step: '03',
-                  title: 'AI sends you matched clients',
-                  desc: 'Our AI matches each client\'s face shape to styles you offer, then routes them straight to your profile.',
-                  accent: 'bg-savanna-500',
-                },
-                {
-                  step: '04',
                   title: 'Fill your calendar',
                   desc: 'Clients book online and pay you directly. No missed calls, no back-and-forth, no empty chairs.',
                   accent: 'bg-gray-900',
@@ -119,18 +100,45 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+            <div className="text-center">
+              <Link
+                href="/register?role=barber"
+                className="inline-flex items-center px-7 py-3.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl transition-colors text-base"
+              >
+                List your shop free
+                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* AI FEATURE HIGHLIGHT */}
+        {/* FOR CLIENTS — second */}
         <section className="py-24 bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p className="text-terracotta-500 text-xs font-semibold uppercase tracking-widest mb-3">For clients</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Find a barber near you</h2>
+            <p className="text-gray-600 text-lg leading-relaxed mb-8">
+              No more guessing which barber actually knows how to work with your hair type. Browse a live map of barbers near you, filter by price, rating, style, and distance, and see their work before you commit.
+            </p>
+            <Link
+              href="/search"
+              className="inline-flex items-center px-7 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors text-base"
+            >
+              Find a barber nearby
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            </Link>
+          </div>
+        </section>
+
+        {/* AI FEATURE — third */}
+        <section className="py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               <div>
                 <p className="text-brand-500 text-sm font-semibold uppercase tracking-widest mb-4">AI Style Matching</p>
                 <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 leading-tight">Turn browsers into<br />booked clients.</h2>
                 <p className="text-gray-500 text-base leading-relaxed mb-8">
-                  When a client uploads a photo, our AI analyses their face shape and matches them to Afro-hair styles — fades, twist-outs, locs, and cornrows — then shows them barbers nearby who specialise in each look. It's a built-in stream of qualified clients who already know what they want, and know you can deliver it.
+                  When a client uploads a photo, our AI analyses their face shape and matches them to Afro-hair styles — fades, twist-outs, locs, and cornrows — then shows them barbers nearby who specialise in each look. For barbers, it's a built-in stream of qualified clients who already know what they want and know you can deliver it. For clients, it's the confidence of picking the right cut before they sit in the chair.
                 </p>
                 <Link
                   href="/style-match"

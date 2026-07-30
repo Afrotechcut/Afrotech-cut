@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
   const maxPrice = searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : null;
   const minRating = searchParams.get('minRating') ? parseFloat(searchParams.get('minRating')!) : null;
   const hairstyleId = searchParams.get('hairstyleId') || null;
+  const hairTypeId = searchParams.get('hairTypeId') || null;
 
   const db = getServiceClient();
 
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest) {
     p_max_price: maxPrice,
     p_min_rating: minRating,
     p_hairstyle_id: hairstyleId,
+    p_hair_type_id: hairTypeId,
   });
 
   if (error) {

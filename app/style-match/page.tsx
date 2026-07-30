@@ -11,9 +11,10 @@ import type { StyleRecommendation } from '@/types';
 
 type GenerationState = { status: 'loading' | 'done' | 'error'; image?: string };
 
-// Average observed time for a GPT image edit to come back. Not exact — used to drive
-// a countdown that gives users a sense of progress instead of an indefinite spinner.
-const ESTIMATED_GENERATION_SECONDS = 48;
+// Average observed time for the whole flow: analysing the photo (a few seconds) plus
+// the GPT image edit coming back (~45-50s). Not exact — used to drive a single countdown
+// that starts the instant the user clicks, instead of a gap before anything appears.
+const ESTIMATED_TOTAL_SECONDS = 52;
 
 function resolveHairstyleImage(url: string) {
   return url.startsWith('http') ? url : buildStorageUrl('assets', url);
@@ -48,26 +49,31 @@ export default function StyleMatchPage() {
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const generationsRef = useRef<GenerationState[]>([]);
+  const timerIdRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [cameraMode, setCameraMode] = useState(false);
 
-  useEffect(() => {
-    generationsRef.current = generations;
-  }, [generations]);
-
-  // Drives the countdown shown while images generate. Restarts whenever a new set of
-  // recommendations comes in, and self-stops once nothing is left loading.
-  useEffect(() => {
-    if (!recommendations) return;
+  // Starts the countdown the instant the user clicks "Find my styles" — covering both
+  // the photo-analysis call and the image generation that follows — so there's no gap
+  // where nothing on screen is moving. Call stopTimer() once the whole flow settles.
+  const startTimer = () => {
+    if (timerIdRef.current) clearInterval(timerIdRef.current);
     setElapsed(0);
-    const id = setInterval(() => {
-      setElapsed((s) => s + 1);
-      if (!generationsRef.current.some((g) => g.status === 'loading')) {
-        clearInterval(id);
-      }
-    }, 1000);
-    return () => clearInterval(id);
-  }, [recommendations]);
+    timerIdRef.current = setInterval(() => setElapsed((s) => s + 1), 1000);
+  };
+  const stopTimer = () => {
+    if (timerIdRef.current) {
+      clearInterval(timerIdRef.current);
+      timerIdRef.current = null;
+    }
+  };
+  useEffect(() => stopTimer, []);
+
+  // Once every card has settled (done or error), the countdown has served its purpose.
+  useEffect(() => {
+    if (recommendations && generations.length > 0 && generations.every((g) => g.status !== 'loading')) {
+      stopTimer();
+    }
+  }, [generations, recommendations]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -130,6 +136,7 @@ export default function StyleMatchPage() {
     setError('');
     setRecommendations(null);
     setGenerations([]);
+    startTimer();
     try {
       const coords = await getLocationQuick();
       const form = new FormData();
@@ -142,12 +149,16 @@ export default function StyleMatchPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || 'Analysis failed');
+        stopTimer();
         return;
       }
       const recs: StyleRecommendation[] = data.recommendations;
       setRecommendations(recs);
       setGenerations(recs.map(() => ({ status: 'loading' })));
       recs.forEach((rec, i) => generateImage(file, rec.hairstyle.id, i));
+    } catch {
+      setError('Analysis failed. Please try again.');
+      stopTimer();
     } finally {
       setLoading(false);
     }
@@ -236,8 +247,8 @@ export default function StyleMatchPage() {
                   {recommendations.map((rec, i) => {
                     const gen = generations[i];
                     const referenceImg = resolveHairstyleImage(rec.hairstyle.image_url);
-                    const remaining = Math.max(ESTIMATED_GENERATION_SECONDS - elapsed, 0);
-                    const progressPct = Math.min((elapsed / ESTIMATED_GENERATION_SECONDS) * 100, 100);
+                    const remaining = Math.max(ESTIMATED_TOTAL_SECONDS - elapsed, 0);
+                    const progressPct = Math.min((elapsed / ESTIMATED_TOTAL_SECONDS) * 100, 100);
 
                     return (
                       <div key={rec.hairstyle.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col">
@@ -336,6 +347,35 @@ export default function StyleMatchPage() {
                               See all barbers for this cut →
                             </Link>
                           </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : loading ? (
+                // Shown from the instant "Find my styles" is clicked, before we even know
+                // which two cuts will be recommended — so the countdown never has a gap.
+                <div className="grid sm:grid-cols-2 gap-5">
+                  {[0, 1].map((i) => {
+                    const remaining = Math.max(ESTIMATED_TOTAL_SECONDS - elapsed, 0);
+                    const progressPct = Math.min((elapsed / ESTIMATED_TOTAL_SECONDS) * 100, 100);
+                    return (
+                      <div key={i} className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col">
+                        <div className="relative aspect-square bg-gray-50 flex flex-col items-center justify-center gap-3 px-8">
+                          <svg className="w-7 h-7 animate-spin text-gray-400" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" /></svg>
+                          <p className="text-xs text-gray-400 tabular-nums">
+                            {remaining > 0 ? `Analysing your photo… ${remaining}s` : 'Almost there…'}
+                          </p>
+                          <div className="w-full max-w-[140px] h-1 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-brand-500 rounded-full transition-[width] duration-1000 ease-linear"
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="p-4 flex-1 flex flex-col gap-2">
+                          <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-3 w-36 bg-gray-100 rounded animate-pulse" />
                         </div>
                       </div>
                     );

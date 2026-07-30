@@ -32,6 +32,7 @@ export interface Barber {
   distance_metres?: number;
   services?: Service[];
   hairstyles?: Hairstyle[];
+  hair_types?: HairType[];
   portfolio?: PortfolioImage[];
 }
 
@@ -54,6 +55,16 @@ export interface Hairstyle {
   image_url: string;
   face_shapes: string[];
   tags: string[];
+  is_active: boolean;
+}
+
+export interface HairType {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  swatch_url: string;
+  sort_order: number;
   is_active: boolean;
 }
 
@@ -132,4 +143,5 @@ export interface SearchFilters {
   maxPrice?: number;
   minRating?: number;
   hairstyleId?: string;
+  hairTypeId?: string;
 }

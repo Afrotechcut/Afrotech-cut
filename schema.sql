@@ -132,6 +132,31 @@ CREATE TABLE barber_hairstyles (
   PRIMARY KEY (barber_id, hairstyle_id)
 );
 
+-- Hair type catalogue: extensible on purpose — add a row here (and a swatch image)
+-- to introduce a new type everywhere it's used, with zero code changes.
+-- code       = the technical/curl-pattern label barbers already know (e.g. '4c').
+-- name       = plain-language name shown to customers (e.g. "Tight Coils").
+-- swatch_url = a visual reference image so customers can pick by sight, not jargon.
+--              Absolute ('/...') or full URL ('http...') is used as-is; anything else
+--              is treated as a path in the 'assets' Supabase Storage bucket, same
+--              convention as hairstyles.image_url.
+CREATE TABLE hair_types (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  code        TEXT        NOT NULL UNIQUE,
+  name        TEXT        NOT NULL,
+  description TEXT        NOT NULL,
+  swatch_url  TEXT        NOT NULL,
+  sort_order  INTEGER     NOT NULL DEFAULT 0,
+  is_active   BOOLEAN     NOT NULL DEFAULT TRUE
+);
+
+-- Junction: barbers declare which hair types they're skilled with.
+CREATE TABLE barber_hair_types (
+  barber_id    UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+  hair_type_id UUID NOT NULL REFERENCES hair_types(id) ON DELETE CASCADE,
+  PRIMARY KEY (barber_id, hair_type_id)
+);
+
 -- Bookings: supports both registered users (user_id) and guests (guest_* fields).
 -- Payment is demo-only so every booking is created as 'confirmed' immediately.
 CREATE TABLE bookings (
@@ -215,6 +240,8 @@ CREATE INDEX hairstyles_face_shapes_gin_idx    ON hairstyles USING GIN(face_shap
 CREATE INDEX hairstyles_tags_gin_idx           ON hairstyles USING GIN(tags);
 
 CREATE INDEX barber_hairstyles_hairstyle_idx   ON barber_hairstyles(hairstyle_id);
+
+CREATE INDEX barber_hair_types_type_idx        ON barber_hair_types(hair_type_id);
 
 CREATE INDEX portfolio_barber_sort_idx         ON barber_portfolio(barber_id, sort_order);
 
@@ -373,8 +400,62 @@ INSERT INTO hairstyles (name, slug, description, image_url, face_shapes, tags) V
 
 
 -- =============================================================
+-- SEED: HAIR TYPE CATALOGUE
+--
+-- The standard extended curl-pattern typing system used across the natural/Afro
+-- hair community (Type 3 = curly, Type 4 = coily/kinky). Not exhaustive — add
+-- more rows any time (looser waves, locs-in-progress textures, etc.) and they
+-- flow through the barber form, search filter, and profile pages automatically.
+--
+-- swatch_url values point at the generated reference graphics in
+-- /public/hairtypes/<code>.svg (see public/hairtypes/). To use a real photo
+-- instead, either replace that file directly or set swatch_url to a Supabase
+-- Storage path (e.g. 'hairtypes/<code>.jpg') the same way hairstyles.image_url
+-- works.
+-- =============================================================
+
+INSERT INTO hair_types (code, name, description, swatch_url, sort_order) VALUES
+
+('3a',
+ 'Loose Curls',
+ 'Loose, springy S-shaped curls with plenty of shine and definition.',
+ '/hairtypes/3a.svg',
+ 10),
+
+('3b',
+ 'Springy Curls',
+ 'Tighter ringlet curls, springy and voluminous from root to tip.',
+ '/hairtypes/3b.svg',
+ 20),
+
+('3c',
+ 'Tight Curls',
+ 'Densely packed corkscrew curls, tight and voluminous with less shine.',
+ '/hairtypes/3c.svg',
+ 30),
+
+('4a',
+ 'Soft Coils',
+ 'Fine, tightly coiled strands with a defined curl pattern when stretched.',
+ '/hairtypes/4a.svg',
+ 40),
+
+('4b',
+ 'Springy Coils',
+ 'Z-shaped coils with sharp angles, a less defined curl pattern, and a fluffy texture.',
+ '/hairtypes/4b.svg',
+ 50),
+
+('4c',
+ 'Tight Coils',
+ 'Tightly coiled zig-zag pattern with little visible curl definition and maximum shrinkage.',
+ '/hairtypes/4c.svg',
+ 60);
+
+
+-- =============================================================
 -- END OF SCHEMA
--- Total tables: 10 | Indexes: 17 | Triggers: 7 | Seed rows: 15
+-- Total tables: 12 | Indexes: 18 | Triggers: 7 | Seed rows: 15 hairstyles + 6 hair types
 -- =============================================================
 
 -- =============================================================
@@ -383,3 +464,38 @@ INSERT INTO hairstyles (name, slug, description, image_url, face_shapes, tags) V
 -- any Supabase project that was set up before this change.
 -- =============================================================
 -- DROP TABLE IF EXISTS inventory;
+
+
+-- =============================================================
+-- MIGRATION: adding hair-type matching to an existing database
+-- Run this once against any Supabase project that predates this change —
+-- safe to paste on its own in the SQL Editor without re-running schema.sql.
+-- Follow it with the updated search_barbers.sql and rls.sql.
+-- =============================================================
+
+CREATE TABLE IF NOT EXISTS hair_types (
+  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  code        TEXT        NOT NULL UNIQUE,
+  name        TEXT        NOT NULL,
+  description TEXT        NOT NULL,
+  swatch_url  TEXT        NOT NULL,
+  sort_order  INTEGER     NOT NULL DEFAULT 0,
+  is_active   BOOLEAN     NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS barber_hair_types (
+  barber_id    UUID NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+  hair_type_id UUID NOT NULL REFERENCES hair_types(id) ON DELETE CASCADE,
+  PRIMARY KEY (barber_id, hair_type_id)
+);
+
+CREATE INDEX IF NOT EXISTS barber_hair_types_type_idx ON barber_hair_types(hair_type_id);
+
+INSERT INTO hair_types (code, name, description, swatch_url, sort_order) VALUES
+  ('3a', 'Loose Curls',    'Loose, springy S-shaped curls with plenty of shine and definition.',                  '/hairtypes/3a.svg', 10),
+  ('3b', 'Springy Curls',  'Tighter ringlet curls, springy and voluminous from root to tip.',                     '/hairtypes/3b.svg', 20),
+  ('3c', 'Tight Curls',    'Densely packed corkscrew curls, tight and voluminous with less shine.',               '/hairtypes/3c.svg', 30),
+  ('4a', 'Soft Coils',     'Fine, tightly coiled strands with a defined curl pattern when stretched.',            '/hairtypes/4a.svg', 40),
+  ('4b', 'Springy Coils',  'Z-shaped coils with sharp angles, a less defined curl pattern, and a fluffy texture.','/hairtypes/4b.svg', 50),
+  ('4c', 'Tight Coils',    'Tightly coiled zig-zag pattern with little visible curl definition and maximum shrinkage.', '/hairtypes/4c.svg', 60)
+ON CONFLICT (code) DO NOTHING;

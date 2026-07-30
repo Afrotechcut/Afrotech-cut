@@ -4,7 +4,8 @@ import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import BarberCard from '@/components/barber/BarberCard';
-import type { Barber } from '@/types';
+import { resolveAssetUrl } from '@/lib/utils';
+import type { Barber, HairType } from '@/types';
 
 const BarberMap = dynamic(() => import('@/components/map/BarberMap'), { ssr: false });
 
@@ -37,16 +38,23 @@ function SearchPageInner() {
   const [selectedId, setSelectedId] = useState<string | undefined>();
   const [locationInput, setLocationInput] = useState('');
   const [locating, setLocating] = useState(false);
+  const [allHairTypes, setAllHairTypes] = useState<HairType[]>([]);
+  const [hairTypeId, setHairTypeId] = useState<string | null>(searchParams.get('hairTypeId'));
   const listRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  const fetchBarbers = useCallback(async (lng: number, lat: number, r: number, rating: number | null, price: number | null, styleId: string | null) => {
+  useEffect(() => {
+    fetch('/api/hair-types').then((r) => r.json()).then((d) => setAllHairTypes(d.hairTypes || []));
+  }, []);
+
+  const fetchBarbers = useCallback(async (lng: number, lat: number, r: number, rating: number | null, price: number | null, styleId: string | null, typeId: string | null) => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ lat: String(lat), lng: String(lng), radius: String(r) });
       if (rating) params.set('minRating', String(rating));
       if (price) params.set('maxPrice', String(price));
       if (styleId) params.set('hairstyleId', styleId);
+      if (typeId) params.set('hairTypeId', typeId);
       const res = await fetch(`/api/barbers?${params}`);
       const data = await res.json();
       setBarbers(data.barbers || []);
@@ -58,9 +66,9 @@ function SearchPageInner() {
   useEffect(() => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      fetchBarbers(center[0], center[1], radius, minRating, maxPrice, hairstyleId);
+      fetchBarbers(center[0], center[1], radius, minRating, maxPrice, hairstyleId, hairTypeId);
     }, 300);
-  }, [center, radius, minRating, maxPrice, hairstyleId, fetchBarbers]);
+  }, [center, radius, minRating, maxPrice, hairstyleId, hairTypeId, fetchBarbers]);
 
   const useMyLocation = () => {
     setLocating(true);
@@ -128,6 +136,42 @@ function SearchPageInner() {
               </div>
             </div>
 
+            {/* Hair type — visual picker, no jargon required to use it */}
+            {allHairTypes.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1.5">Your hair type</p>
+                <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+                  <button
+                    onClick={() => setHairTypeId(null)}
+                    className="flex-shrink-0 flex flex-col items-center gap-1 w-14"
+                    title="Show barbers regardless of hair type"
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 text-[10px] font-semibold text-gray-500 ${
+                      !hairTypeId ? 'border-gray-900 bg-gray-100' : 'border-transparent bg-gray-100'
+                    }`}>
+                      Any
+                    </div>
+                  </button>
+                  {allHairTypes.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setHairTypeId(hairTypeId === t.id ? null : t.id)}
+                      className="flex-shrink-0 flex flex-col items-center gap-1 w-14"
+                      title={t.description}
+                    >
+                      <div className={`w-12 h-12 rounded-full overflow-hidden border-2 ${
+                        hairTypeId === t.id ? 'border-gray-900' : 'border-transparent'
+                      }`}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={resolveAssetUrl('assets', t.swatch_url)} alt={t.name} className="w-full h-full object-cover" />
+                      </div>
+                      <span className="text-[10px] text-gray-500 text-center leading-tight truncate w-full">{t.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Filters row */}
             <div className="flex gap-2">
               <div className="flex-1">
@@ -165,6 +209,16 @@ function SearchPageInner() {
               <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                 <span className="text-xs font-medium text-gray-600">Showing barbers who offer this cut</span>
                 <button onClick={() => setStyleFilterCleared(true)} className="text-xs font-semibold text-gray-500 hover:text-gray-800">
+                  Clear
+                </button>
+              </div>
+            )}
+            {hairTypeId && (
+              <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                <span className="text-xs font-medium text-gray-600">
+                  Showing barbers who work with {allHairTypes.find((t) => t.id === hairTypeId)?.name || 'this hair type'}
+                </span>
+                <button onClick={() => setHairTypeId(null)} className="text-xs font-semibold text-gray-500 hover:text-gray-800">
                   Clear
                 </button>
               </div>

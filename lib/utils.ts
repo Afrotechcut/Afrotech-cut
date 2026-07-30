@@ -33,5 +33,15 @@ export function buildStorageUrl(bucket: string, path: string): string {
   return `${base}/storage/v1/object/public/${bucket}/${path}`;
 }
 
+// Resolves any asset reference to a usable URL: a full URL or a root-relative
+// path (e.g. a static file under /public) is used as-is; anything else is
+// treated as a path inside the given Supabase Storage bucket. Used for hair
+// type swatches so seed data can point at local generated graphics while still
+// allowing a real photo to be swapped in later via Storage, unchanged callers.
+export function resolveAssetUrl(bucket: string, path: string): string {
+  if (path.startsWith('http') || path.startsWith('/')) return path;
+  return buildStorageUrl(bucket, path);
+}
+
 // Return day name from 0-indexed day_of_week (0=Sunday)
 export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

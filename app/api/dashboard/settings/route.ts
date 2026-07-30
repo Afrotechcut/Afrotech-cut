@@ -7,15 +7,22 @@ export async function GET() {
   if (!session || session.role !== 'barber') return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
   const db = getServiceClient();
 
-  const [{ data: barber }, { data: availability }, { data: services }, { data: hairstyles }] =
+  const [{ data: barber }, { data: availability }, { data: services }, { data: hairstyles }, { data: hairTypes }] =
     await Promise.all([
       db.from('barbers').select('*').eq('id', session.barberId!).single(),
       db.from('barber_availability').select('*').eq('barber_id', session.barberId!).order('day_of_week'),
       db.from('services').select('*').eq('barber_id', session.barberId!).order('price'),
       db.from('barber_hairstyles').select('hairstyle_id').eq('barber_id', session.barberId!),
+      db.from('barber_hair_types').select('hair_type_id').eq('barber_id', session.barberId!),
     ]);
 
-  return NextResponse.json({ barber, availability, services, hairstyleIds: (hairstyles || []).map((h) => h.hairstyle_id) });
+  return NextResponse.json({
+    barber,
+    availability,
+    services,
+    hairstyleIds: (hairstyles || []).map((h) => h.hairstyle_id),
+    hairTypeIds: (hairTypes || []).map((h) => h.hair_type_id),
+  });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -24,7 +31,7 @@ export async function PATCH(req: NextRequest) {
 
   const db = getServiceClient();
   const body = await req.json();
-  const { availability, services, hairstyleIds, ...rawBarberFields } = body;
+  const { availability, services, hairstyleIds, hairTypeIds, ...rawBarberFields } = body;
 
   // Only these columns may be self-edited by a barber — never is_approved,
   // is_active, rating, review_count, user_id, etc.
@@ -71,6 +78,16 @@ export async function PATCH(req: NextRequest) {
     if (hairstyleIds.length > 0) {
       await db.from('barber_hairstyles').insert(
         hairstyleIds.map((id: string) => ({ barber_id: session.barberId!, hairstyle_id: id })),
+      );
+    }
+  }
+
+  // Sync hair type associations
+  if (hairTypeIds) {
+    await db.from('barber_hair_types').delete().eq('barber_id', session.barberId!);
+    if (hairTypeIds.length > 0) {
+      await db.from('barber_hair_types').insert(
+        hairTypeIds.map((id: string) => ({ barber_id: session.barberId!, hair_type_id: id })),
       );
     }
   }

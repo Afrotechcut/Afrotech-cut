@@ -6,13 +6,13 @@ import Footer from '@/components/layout/Footer';
 import StarRating from '@/components/ui/StarRating';
 import Badge from '@/components/ui/Badge';
 import { getServiceClient } from '@/lib/supabase';
-import { buildStorageUrl, DAY_NAMES, formatPrice } from '@/lib/utils';
-import type { Service, BarberAvailability, Review, PortfolioImage, Hairstyle } from '@/types';
+import { buildStorageUrl, resolveAssetUrl, DAY_NAMES, formatPrice } from '@/lib/utils';
+import type { Service, BarberAvailability, Review, PortfolioImage, Hairstyle, HairType } from '@/types';
 
 async function getBarber(id: string) {
   const db = getServiceClient();
 
-  const [{ data: barber }, { data: services }, { data: availability }, { data: portfolio }, { data: reviews }, { data: hairstyles }] =
+  const [{ data: barber }, { data: services }, { data: availability }, { data: portfolio }, { data: reviews }, { data: hairstyles }, { data: hairTypes }] =
     await Promise.all([
       db.from('barbers').select('*').eq('id', id).single(),
       db.from('services').select('*').eq('barber_id', id).eq('is_active', true).order('price'),
@@ -21,6 +21,9 @@ async function getBarber(id: string) {
       db.from('reviews').select('*').eq('barber_id', id).order('created_at', { ascending: false }).limit(20),
       db.from('barber_hairstyles')
         .select('hairstyle_id, hairstyles(id, name, slug, description, image_url, face_shapes, tags)')
+        .eq('barber_id', id),
+      db.from('barber_hair_types')
+        .select('hair_type_id, hair_types(id, code, name, description, swatch_url, sort_order)')
         .eq('barber_id', id),
     ]);
 
@@ -33,6 +36,10 @@ async function getBarber(id: string) {
     portfolio: portfolio || [],
     reviews: reviews || [],
     hairstyles: (hairstyles || []).map((h: any) => h.hairstyles).filter(Boolean),
+    hairTypes: (hairTypes || [])
+      .map((h: any) => h.hair_types)
+      .filter(Boolean)
+      .sort((a: HairType, b: HairType) => a.sort_order - b.sort_order),
   };
 }
 
@@ -40,7 +47,7 @@ export default async function BarberProfilePage({ params }: { params: { id: stri
   const data = await getBarber(params.id);
   if (!data) notFound();
 
-  const { barber, services, availability, portfolio, reviews, hairstyles } = data;
+  const { barber, services, availability, portfolio, reviews, hairstyles, hairTypes } = data;
 
   const avatarUrl = barber.avatar_url?.startsWith('http')
     ? barber.avatar_url
@@ -169,6 +176,24 @@ export default async function BarberProfilePage({ params }: { params: { id: stri
                   <div className="flex flex-wrap gap-2">
                     {hairstyles.map((h: Hairstyle) => (
                       <span key={h.id} className="px-3 py-1.5 bg-gray-100 rounded-full text-xs font-medium text-gray-700">{h.name}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hair types */}
+              {hairTypes.length > 0 && (
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h2 className="font-semibold text-gray-900 mb-4">Works with these hair types</h2>
+                  <div className="flex flex-wrap gap-3">
+                    {hairTypes.map((t: HairType) => (
+                      <div key={t.id} title={t.description} className="flex items-center gap-2 pr-3 pl-1.5 py-1.5 bg-gray-100 rounded-full">
+                        <div className="w-7 h-7 rounded-full overflow-hidden bg-white flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={resolveAssetUrl('assets', t.swatch_url)} alt={t.name} width={28} height={28} className="object-cover w-full h-full" />
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">{t.name}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
