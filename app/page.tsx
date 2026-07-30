@@ -66,29 +66,35 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* FOR BARBERS — leads */}
+        {/* HOW IT WORKS — one step per audience, barber > customer > AI */}
         <section className="py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <p className="text-brand-500 text-xs font-semibold uppercase tracking-widest mb-3">For barbers</p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">List your shop, fill your chair</h2>
+              <p className="text-brand-500 text-xs font-semibold uppercase tracking-widest mb-3">How it works</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">From empty chair to fully booked</h2>
               <p className="text-gray-600 text-lg leading-relaxed max-w-2xl mx-auto">
-                No more sitting in an empty shop while clients who want exactly what you offer can't find you.
+                Built barber-first — here's how all three sides of the platform connect.
               </p>
             </div>
-            <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto mb-12">
+            <div className="grid sm:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
               {[
                 {
                   step: '01',
-                  title: 'List your shop',
-                  desc: 'Create your profile in minutes — add your services, prices, and photos of your best work.',
+                  title: 'Barbers list their shop',
+                  desc: 'Create a profile, add your services, prices, and photos of your work — takes minutes.',
                   accent: 'bg-terracotta-500',
                 },
                 {
                   step: '02',
-                  title: 'Fill your calendar',
-                  desc: 'Clients book online and pay you directly. No missed calls, no back-and-forth, no empty chairs.',
-                  accent: 'bg-gray-900',
+                  title: 'Customers find and book',
+                  desc: 'Discover nearby barbers on the map, filter by what you need, and book and pay directly.',
+                  accent: 'bg-brand-500',
+                },
+                {
+                  step: '03',
+                  title: 'AI matches clients to the right barber',
+                  desc: 'Face-shape style match and hair-type filtering send the right customers your way.',
+                  accent: 'bg-savanna-500',
                 },
               ].map(({ step, title, desc, accent }) => (
                 <div key={step} className="bg-white rounded-2xl p-8 border border-gray-200">
