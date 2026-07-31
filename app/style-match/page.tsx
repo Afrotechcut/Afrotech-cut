@@ -146,7 +146,7 @@ export default function StyleMatchPage() {
     }, 'image/jpeg', 0.9);
   };
 
-  const generateImage = async (photo: File, hairstyleId: string, index: number) => {
+  const generateImage = async (photo: File, hairstyleId: string, index: number, attempt = 1) => {
     try {
       const form = new FormData();
       form.append('image', photo);
@@ -155,7 +155,15 @@ export default function StyleMatchPage() {
       const data = await res.json();
       if (!res.ok || !data.image) throw new Error(data.error || 'Generation failed');
       setGenerations((prev) => prev.map((g, i) => (i === index ? { status: 'done', image: data.image } : g)));
-    } catch {
+    } catch (err) {
+      // Two image edits fired close together can trip a transient rate limit on the
+      // OpenAI side even when each one individually would succeed — one retry clears
+      // most of those before we give up and show the fallback.
+      if (attempt < 2) {
+        console.warn(`generate-style attempt ${attempt} failed, retrying`, err);
+        await new Promise((r) => setTimeout(r, 2500));
+        return generateImage(photo, hairstyleId, index, attempt + 1);
+      }
       setGenerations((prev) => prev.map((g, i) => (i === index ? { status: 'error' } : g)));
     }
   };
@@ -196,7 +204,9 @@ export default function StyleMatchPage() {
       const recs: StyleRecommendation[] = data.recommendations;
       setRecommendations(recs);
       setGenerations(recs.map(() => ({ status: 'loading' })));
-      recs.forEach((rec, i) => generateImage(file, rec.hairstyle.id, i));
+      // Stagger the start of each image edit slightly — firing both in the same instant
+      // is more likely to trip a per-account concurrency/rate limit on the OpenAI side.
+      recs.forEach((rec, i) => setTimeout(() => generateImage(file, rec.hairstyle.id, i), i * 1500));
     } catch {
       setError('Analysis failed. Please try again.');
       stopTimer();

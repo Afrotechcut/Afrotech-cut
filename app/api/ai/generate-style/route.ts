@@ -52,7 +52,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ image: `data:image/png;base64,${b64}` });
   } catch (err: any) {
-    console.error('AI generate-style error:', err);
-    return NextResponse.json({ error: 'Image generation failed' }, { status: 500 });
+    // err.status/err.code come from the OpenAI SDK's APIError — logging them explicitly
+    // (rate limits, concurrency limits, content-policy rejections all surface here)
+    // makes this diagnosable from Vercel's function logs instead of just "it failed".
+    console.error('AI generate-style error:', { status: err?.status, code: err?.code, message: err?.message || err });
+    const status = err?.status === 429 ? 429 : 500;
+    return NextResponse.json({ error: status === 429 ? 'Too many requests — please try again shortly.' : 'Image generation failed' }, { status });
   }
 }
